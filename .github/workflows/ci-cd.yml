@@ -1,0 +1,24 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Build the Docker image
+      - name: Build Docker image
+        run: docker build -t my-delivery-app .
+
+      # Step 3: Test that the app runs inside the container
+      - name: Test the application
+        run: |
+          docker run -d --name test-app -p 5000:5000 my-delivery-app
+          sleep 5 # Give the server a moment to start
+          docker logs test-app # Show the logs to see if it started correctly
