@@ -5,20 +5,31 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build-test-and-push:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the code from the repository
+      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Build the Docker image
-      - name: Build Docker image
-        run: docker build -t my-delivery-app .
+      # Step 2: Log in to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 3: Test that the app runs inside the container
+      # Step 3: Build the Docker image
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-delivery-app:latest .
+
+      # Step 4: Test that the app runs
       - name: Test the application
         run: |
-          docker run -d --name test-app -p 5000:5000 my-delivery-app
-          sleep 5 # Give the server a moment to start
-          docker logs test-app # Show the logs to see if it started correctly
+          docker run -d --name test-app ${{ secrets.DOCKERHUB_USERNAME }}/my-delivery-app:latest
+          sleep 5
+          docker logs test-app
+
+      # Step 5: Push the Docker image to Docker Hub
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-delivery-app:latest
